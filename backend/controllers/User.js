@@ -38,9 +38,18 @@ export const userSignIn = async (req, res) => {
     if (!passwordMatch) return res.status(401).json("Incorrect password");
 
     const token = jwt.sign({ email }, process.env.JWT_SECRET);
-    res.cookie("jwt", token, { httpOnly: true });
 
-    res.json("User signed in successfully");
+    const cookieConfig = {
+      expires: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000),
+      httpOnly: true,
+      domain: "http://localhost:5173",
+      secure: true,
+      sameSite: "none",
+    };
+
+    res.cookie("jwt", token, cookieConfig);
+
+    res.json({ message: "user signed in successfully", token: token });
   } catch (error) {
     console.error("Error in userSignIn:", error);
     res.status(500).json({ error: "Internal server error" });
@@ -121,5 +130,14 @@ export const getTodos = async (req, res) => {
   } catch (error) {
     console.error("Error in getTodos:", error);
     res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+export const auth = async (req, res) => {
+  try {
+    res.json(req.email);
+  } catch (error) {
+    console.error("Error in auth:", error);
+    res.status(500).send({ error: "Internal server error" });
   }
 };
