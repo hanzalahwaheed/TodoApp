@@ -132,8 +132,9 @@ export const markAsDone = async (req, res) => {
 };
 
 export const auth = async (req, res) => {
+  const email = req.email;
   try {
-    res.json({ status: true, email: req.email });
+    res.json({ useremail: email, status: true, email: req.email });
   } catch (error) {
     console.error("Error in auth:", error);
     res.status(500).send({ error: "Internal server error" });
