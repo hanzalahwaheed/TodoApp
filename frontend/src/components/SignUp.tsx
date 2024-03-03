@@ -1,19 +1,25 @@
 import axios from "axios";
-import { useState } from "react";
+import { useState, ChangeEvent, FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
+
+interface FormData {
+  username: string;
+  email: string;
+  password: string;
+}
 
 const SignUp = () => {
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     username: "",
     email: "",
     password: "",
   });
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
-      const response = await axios.post(
+      const response = await axios.post<{ status: boolean }>(
         "http://localhost:5000/api/user/signup",
         formData
       );
@@ -25,7 +31,7 @@ const SignUp = () => {
     }
   };
 
-  const handleChange = (e) => {
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };

@@ -1,28 +1,28 @@
 import axios from "axios";
-import { useState } from "react";
+import { useState, ChangeEvent, FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
-import { useSetRecoilState } from "recoil";
-import { authState } from "../store/Auth";
-import { CookiesProvider, useCookies } from "react-cookie";
+
+interface FormData {
+  email: string;
+  password: string;
+}
 
 const SignIn = () => {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     email: "",
     password: "",
   });
   const navigate = useNavigate();
-  const setAuth = useSetRecoilState(authState);
-  // const [cookies, setCookie] = useCookies(["jwt"]);
 
-  const handleChange = (e) => {
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
-    console.log(formData);
   };
-  const handleSubmit = async (e) => {
+
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
-      const response = await axios.post(
+      const response = await axios.post<{ status: boolean }>(
         "http://localhost:5000/api/user/signin",
         formData,
         { withCredentials: true }
@@ -43,7 +43,7 @@ const SignIn = () => {
           </h5>
           <div>
             <label
-              for="email"
+              htmlFor="email"
               className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
             >
               Your email
@@ -60,7 +60,7 @@ const SignIn = () => {
           </div>
           <div>
             <label
-              for="password"
+              htmlFor="password"
               className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
             >
               Your password

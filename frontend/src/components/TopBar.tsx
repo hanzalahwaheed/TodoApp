@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 const TopBar = () => {
-  const [loader, setLoader] = useState(false);
+  const [loader, setLoader] = useState<Boolean>(false);
   const navigate = useNavigate();
 
   const checkAuth = async () => {
