@@ -1,5 +1,5 @@
 import express from "express";
-import userMiddleware from "../middlewares/index.js";
+import userAuthMiddleware from "../middlewares/index.js";
 import {
   addTodo,
   markAsDone,
@@ -7,16 +7,18 @@ import {
   userSignUp,
   getTodos,
   auth,
+  logout,
 } from "../controllers/User.js";
 
 const router = express.Router();
 
 router.post("/signup", userSignUp);
 router.post("/signin", userSignIn);
-router.get("/home", userMiddleware, getTodos);
-router.get("/auth", userMiddleware, auth);
-router.post("/home/addtodo", userMiddleware, addTodo);
+router.get("/home", userAuthMiddleware, getTodos);
+router.get("/auth", userAuthMiddleware, auth);
+router.get("/logout", userAuthMiddleware, logout);
+router.post("/home/addtodo", userAuthMiddleware, addTodo);
 //check for post vs put
-router.post("/home/markasdone", userMiddleware, markAsDone);
+router.post("/home/markasdone", userAuthMiddleware, markAsDone);
 
 export default router;

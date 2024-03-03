@@ -1,12 +1,15 @@
 import User from "../db/index.js";
-import UserSchema from "../validations/userValidation.js";
+import {
+  UserSchemaSignIn,
+  UserSchemaSignUp,
+} from "../validations/userValidation.js";
 import TodoSchema from "../validations/todoValidation.js";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 
 export const userSignUp = async (req, res) => {
   try {
-    const { username, email, password } = UserSchema.parse(req.body);
+    const { email, password, username } = UserSchemaSignUp.parse(req.body);
 
     const existingUser = await User.findOne({ email });
     if (existingUser)
@@ -20,7 +23,7 @@ export const userSignUp = async (req, res) => {
       email,
     });
 
-    res.json("User created successfully");
+    res.json({ status: true, message: "User created successfully" });
   } catch (error) {
     console.error("Error in userSignUp:", error);
     res.status(500).send({ error: "Internal server error" });
@@ -29,7 +32,7 @@ export const userSignUp = async (req, res) => {
 
 export const userSignIn = async (req, res) => {
   try {
-    const { email, password } = UserSchema.parse(req.body);
+    const { email, password } = UserSchemaSignIn.parse(req.body);
 
     const user = await User.findOne({ email });
     if (!user) return res.status(404).json("User not found");
@@ -38,20 +41,37 @@ export const userSignIn = async (req, res) => {
     if (!passwordMatch) return res.status(401).json("Incorrect password");
 
     const token = jwt.sign({ email }, process.env.JWT_SECRET);
-
-    const cookieConfig = {
+    res.cookie("token", token, {
       expires: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000),
       httpOnly: true,
-      domain: "http://localhost:5173",
-      secure: true,
-      sameSite: "none",
-    };
+    });
 
-    res.cookie("jwt", token, cookieConfig);
-
-    res.json({ message: "user signed in successfully", token: token });
+    res.json({
+      status: true,
+      message: "user signed in successfully",
+    });
   } catch (error) {
     console.error("Error in userSignIn:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+export const getTodos = async (req, res) => {
+  const email = req.email;
+  try {
+    const user = await User.findOne({ email: email });
+    const todos = user.todos;
+    if (todos) {
+      res.json({
+        status: true,
+        message: "Fetched all todos",
+        todos: todos,
+      });
+    } else {
+      res.status(404).json({ error: "Todo not found for the user" });
+    }
+  } catch (error) {
+    console.error("Error in getTodos:", error);
     res.status(500).json({ error: "Internal server error" });
   }
 };
@@ -87,7 +107,7 @@ export const addTodo = async (req, res) => {
 };
 
 export const markAsDone = async (req, res) => {
-  const { todoId } = req.body; // Assuming your request body includes 'todoId'
+  const { todoId } = req.body;
   const email = req.email;
 
   try {
@@ -111,33 +131,16 @@ export const markAsDone = async (req, res) => {
   }
 };
 
-export const getTodos = async (req, res) => {
-  const email = req.email;
-  console.log(email);
-  try {
-    const user = await User.findOne({ email: email });
-    console.log(user);
-    const todos = user.todos;
-    console.log(todos);
-    if (todos) {
-      res.json({
-        message: "Fetched all todos",
-        todos: todos,
-      });
-    } else {
-      res.status(404).json({ error: "Todo not found for the user" });
-    }
-  } catch (error) {
-    console.error("Error in getTodos:", error);
-    res.status(500).json({ error: "Internal server error" });
-  }
-};
-
 export const auth = async (req, res) => {
   try {
-    res.json(req.email);
+    res.json({ status: true, email: req.email });
   } catch (error) {
     console.error("Error in auth:", error);
     res.status(500).send({ error: "Internal server error" });
   }
+};
+
+export const logout = (req, res) => {
+  res.clearCookie("token");
+  return res.json({ status: true, message: "logged out" });
 };

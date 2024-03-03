@@ -1,14 +1,19 @@
 import jwt from "jsonwebtoken";
 
-const userMiddleware = (req, res, next) => {
+const userAuthMiddleware = (req, res, next) => {
   try {
-    const token = req.cookies.jwt;
+    const token = req.cookies.token;
+    if (!token) {
+      return res.json({ status: false, message: "no token" });
+    }
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     if (decoded.email) {
       req.email = decoded.email;
       next();
     } else {
-      return res.status(401).json("User isn't logged in");
+      return res
+        .status(401)
+        .json({ status: false, message: "User isn't logged in" });
     }
   } catch (error) {
     console.error("Error in userMiddleware:", error);
@@ -16,4 +21,4 @@ const userMiddleware = (req, res, next) => {
   }
 };
 
-export default userMiddleware;
+export default userAuthMiddleware;

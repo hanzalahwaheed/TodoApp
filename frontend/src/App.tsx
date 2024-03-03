@@ -1,63 +1,47 @@
-import React, { useEffect, useState } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { useRecoilState, useRecoilValue } from "recoil";
-import { useCookies } from "react-cookie";
 import AddTodo from "./components/AddTodo";
 import Todos from "./components/Todos";
-import SignIn from "./components/SignIn";
 import SignUp from "./components/SignUp";
+import SignIn from "./components/SignIn";
 import TopBar from "./components/TopBar";
-import { authState } from "./store/Auth";
 import axios from "axios";
+import { useState, useEffect } from "react";
+import Spinner from "./components/Spinner";
 
 const App = () => {
-  const [auth, setAuth] = useRecoilState(authState);
-  const [loading, setLoading] = useState(false);
-  const [cookie] = useCookies(["jwt"]);
+  const [todos, setTodos] = useState([]);
+  const [loader, setLoader] = useState(false);
 
+  const fetchTasks = async () => {
+    try {
+      const response = await axios.get("http://localhost:5000/api/user/home", {
+        withCredentials: true,
+      });
+      if (response.data.status) setLoader(true);
+      setTodos(response.data.todos);
+    } catch (error) {
+      console.log("Error in getting todos", error);
+    }
+  };
   useEffect(() => {
-    const fetchAuthStatus = async () => {
-      try {
-        const response = await axios.get(
-          "http://localhost:5000/api/user/auth",
-          {
-            withCredentials: true,
-          }
-        );        
-        if (response) {
-          setAuth({
-            isAuthenticated: true,
-            userEmail: response.data,
-          });
-          setLoading(true);
-        }
-      } catch (error) {
-        console.error("Error fetching authentication status:", error);
-        setAuth({ isAuthenticated: false, userEmail: "asdfasdfasdfasdf" });
-      }
-    };
-    fetchAuthStatus();
-  }, [cookie.jwt]);
+    fetchTasks();
+  }, [loader]);
 
-  if (!loading) return <div> Loading...</div>;
-  else
-    return (
+  return (
+    <>
       <BrowserRouter>
         <Routes>
           <Route
             path="/"
             element={
-              auth.isAuthenticated ? (
+              loader ? (
                 <div className="font-poppins">
                   <TopBar />
-                  <Todos />
+                  <Todos todos={todos} />
                   <AddTodo />
                 </div>
               ) : (
-                <>
-                  <TopBar />
-                  <SignIn />
-                </>
+                <Spinner />
               )
             }
           />
@@ -65,7 +49,8 @@ const App = () => {
           <Route path="/signup" element={<SignUp />} />
         </Routes>
       </BrowserRouter>
-    );
+    </>
+  );
 };
 
 export default App;
