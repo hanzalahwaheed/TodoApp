@@ -18,7 +18,6 @@ router.get("/home", userAuthMiddleware, getTodos);
 router.get("/auth", userAuthMiddleware, auth);
 router.get("/logout", userAuthMiddleware, logout);
 router.post("/home/addtodo", userAuthMiddleware, addTodo);
-//check for post vs put
 router.post("/home/markasdone", userAuthMiddleware, markAsDone);
 
 export default router;

@@ -81,7 +81,7 @@ export const addTodo = async (req, res) => {
   const email = req.email;
 
   try {
-    const result = await User.findOneAndUpdate(
+    const response = await User.findOneAndUpdate(
       { email: email },
       {
         $push: {
@@ -95,8 +95,12 @@ export const addTodo = async (req, res) => {
       { new: true }
     );
 
-    if (result) {
-      res.json({ message: "Todo added successfully", updatedUser: result });
+    if (response) {
+      res.json({
+        status: true,
+        message: "Todo added successfully",
+        updatedTodos: response.todos,
+      });
     } else {
       res.status(404).json({ error: "User not found" });
     }
@@ -112,13 +116,14 @@ export const markAsDone = async (req, res) => {
 
   try {
     const result = await User.findOneAndUpdate(
-      { email: email, "todos._id": todoId },
-      { $set: { "todos.$.completed": true } },
+      { email: email },
+      { $pull: { todos: { _id: todoId } } },
       { new: true }
     );
 
     if (result) {
       res.json({
+        status: true,
         message: "Todo marked as done successfully",
         updatedUser: result,
       });
